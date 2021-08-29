@@ -1,9 +1,10 @@
 from tkinter import *
 from pythonds import Stack
-
-
-
 window = Tk()
+
+OPERATORS = set(['+', '-', '*', '/', '(', ')', '^'])  # set of operators
+PRIORITY = {'+': 1, '-': 1, '*': 2, '/': 2, '^': 3}  # dictionary having priorities
+
 
 def infix_to_postfix():
     infix_input = infix_entry.get()  # input expression
@@ -30,11 +31,6 @@ def infix_to_postfix():
             stack.pop()
 
         else:
-
-            # lesser priority can't be on top on higher or equal priority
-
-            # so pop and put in output
-
             while stack and stack[-1] != '(' and PRIORITY[ch] <= PRIORITY[stack[-1]]:
                 output += stack.pop()
 
@@ -138,45 +134,52 @@ def postfix_to_prefix():
 
 
 def infix_to_prefix():
-    formula = infix_entry.get()
-    op_stack = []
-    exp_stack = []
-    for ch in formula:
-        if not ch in OPERATORS:
-            exp_stack.append(ch)
-        elif ch == '(':
-            op_stack.append(ch)
+    infix_input = infix_entry.get()[::-1]
+    stack = []
+    output = ''
+    for ch in infix_input:
+        if ch not in OPERATORS:  # if an operand then put it directly in postfix expression
+            output += ch
+        elif ch == '(':  # else operators should be put in stack
+            stack.append('(')
         elif ch == ')':
-            while op_stack[-1] != '(':
-                op = op_stack.pop()
-                a = exp_stack.pop()
-                b = exp_stack.pop()
-                exp_stack.append(op + b + a)
-            op_stack.pop()  # pop '('
+            while stack and stack[-1] != '(':
+                output += stack.pop()
+
+            stack.pop()
         else:
-            while op_stack and op_stack[-1] != '(' and PRIORITY[ch] <= PRIORITY[op_stack[-1]]:
-                op = op_stack.pop()
-                a = exp_stack.pop()
-                b = exp_stack.pop()
-                exp_stack.append(op + b + a)
-            op_stack.append(ch)
 
-    # leftover
-    while op_stack:
-        op = op_stack.pop()
-        a = exp_stack.pop()
-        b = exp_stack.pop()
-        exp_stack.append(op + b + a)
-    print
-    exp_stack[-1]
-    return exp_stack[-1]
+            while stack and stack[-1] != '(' and PRIORITY[ch] <= PRIORITY[stack[-1]]:
+                output += stack.pop()
+
+            stack.append(ch)
+    while stack:
+        output += stack.pop()
+
+    result=output[::-1]
+
+    prefix_result.config(text=result)
 
 
+def prefix_to_infix():
+    prefix=prefix_entry.get()
 
-def prefix_to_infix(args):
+    stack = []
 
+    i = len(prefix) - 1
+    while i >= 0:
+        if not isOperator(prefix[i]):
 
-    pass
+            # symbol is operand
+            stack.append(prefix[i])
+            i -= 1
+        else:
+
+            # symbol is operator
+            str = "(" + stack.pop() + prefix[i] + stack.pop() + ")"
+            stack.append(str)
+            i -= 1
+    infix_result.config(text=stack[-1])
 
 
 def is_operand(x):
@@ -201,6 +204,9 @@ def postfix_to_infix():
             s.insert(0, "(" + op2 + i +op1 + ")")
 
     infix_result.config(text=s)
+
+
+
 
 
 window.title("Prefix Postfix Infix Converter")
@@ -231,9 +237,6 @@ postfix_entry = Entry()
 postfix_entry.grid(row=2,column=1)
 postfix_entry.config(width=50)
 
-
-
-
 postfix_result = Label(text='0')
 postfix_result.config(width=50)
 postfix_result.grid(row=7,column=1)
@@ -261,20 +264,12 @@ postfix_to_prefix_button.config(padx=10,pady=10)
 postfix_to_infix_button = Button(text="Postfix to Infix", command=postfix_to_infix)
 postfix_to_infix_button.grid(row=5,column =1)
 postfix_to_infix_button.config(padx=10,pady=10)
-
-
-
-
-
 infix_to_prefix_button = Button(text="Infix to Prefix", command=infix_to_prefix)
 infix_to_prefix_button.grid(row=3,column =1)
 infix_to_prefix_button.config(padx=10,pady=10)
 prefix_to_infix_button = Button(text="Prefix to Infix", command=prefix_to_infix)
 prefix_to_infix_button.grid(row=4,column =1)
 prefix_to_infix_button.config(padx=10,pady=10)
-
-
-
 
 postfix = Label(text="Postfix Expression : ")
 postfix.grid(row=7,column=0)
@@ -285,31 +280,5 @@ postfix.config(padx=20,pady=20,bg="#261C2C",fg="white")
 postfix = Label(text="Infix Expression : ")
 postfix.grid(row=9,column=0)
 postfix.config(padx=20,pady=20,bg="#261C2C",fg="white")
-
-
-
-
-
-
-
-
-
-
-OPERATORS = set(['+', '-', '*', '/', '(', ')', '^'])  # set of operators
-
-PRIORITY = {'+': 1, '-': 1, '*': 2, '/': 2, '^': 3}  # dictionary having priorities
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 window.mainloop()
